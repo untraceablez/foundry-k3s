@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "foundryvtt.fullname" . }}
+  labels:
+    {{- include "foundryvtt.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "foundryvtt.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        {{- include "foundryvtt.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.securityContext }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: foundryvtt
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.podSecurityContext }}
+        securityContext:
+          {{- toYaml .Values.podSecurityContext | nindent 10 }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 30000
+          protocol: TCP
+        env:
+        # Primary authentication method: presigned URL
+        {{- if .Values.foundry.releaseUrl }}
+        - name: FOUNDRY_RELEASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "foundryvtt.fullname" . }}
+              key: foundry-release-url
+        {{- else if and .Values.foundry.auth.username .Values.foundry.auth.password }}
+        # Alternative authentication: Foundry account credentials
+        - name: FOUNDRY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "foundryvtt.fullname" . }}
+              key: foundry-username
+        - name: FOUNDRY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "foundryvtt.fullname" . }}
+              key: foundry-password
+        {{- end }}
+        # Admin key for Foundry VTT
+        {{- if .Values.foundry.admin.key }}
+        - name: FOUNDRY_ADMIN_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "foundryvtt.fullname" . }}
+              key: foundry-admin-key
+        {{- end }}
+        # Version configuration
+        - name: FOUNDRY_VERSION
+          value: {{ .Values.foundry.version | quote }}
+        # Optional world configuration
+        {{- if .Values.foundry.world }}
+        - name: FOUNDRY_WORLD
+          value: {{ .Values.foundry.world | quote }}
+        {{- end }}
+        # Optional hostname configuration
+        {{- if .Values.foundry.hostname }}
+        - name: FOUNDRY_HOSTNAME
+          value: {{ .Values.foundry.hostname | quote }}
+        {{- end }}
+        # Proxy configuration
+        {{- if .Values.foundry.proxy.ssl }}
+        - name: FOUNDRY_PROXY_SSL
+          value: {{ .Values.foundry.proxy.ssl | quote }}
+        {{- end }}
+        {{- if .Values.foundry.proxy.port }}
+        - name: FOUNDRY_PROXY_PORT
+          value: {{ .Values.foundry.proxy.port | quote }}
+        {{- end }}
+        # License key
+        {{- if .Values.foundry.licenseKey }}
+        - name: FOUNDRY_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "foundryvtt.fullname" . }}
+              key: foundry-license-key
+        {{- end }}
+        # Config preservation
+        {{- if .Values.foundry.preserveConfig }}
+        - name: CONTAINER_PRESERVE_CONFIG
+          value: "true"
+        {{- end }}
+        # Extra environment variables
+        {{- if .Values.extraEnv }}
+        {{- toYaml .Values.extraEnv | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      volumes:
+      - name: data
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (include "foundryvtt.fullname" .) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

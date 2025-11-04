@@ -1,0 +1,102 @@
+# Example values file for Foundry VTT Helm Chart
+# Copy this file to my-values.yaml and customize for your deployment
+
+# Image configuration
+image:
+  repository: felddy/foundryvtt
+  tag: "13.350"
+  pullPolicy: IfNotPresent
+
+# Foundry VTT Configuration
+foundry:
+  # REQUIRED: Get your presigned release URL from https://foundryvtt.com/me/licenses
+  # Navigate to your licenses, click Linux/NodeJS, and copy the "Timed URL"
+  releaseUrl: "https://foundryvtt.s3.amazonaws.com/releases/13.350/FoundryVTT-13.350.zip?AWSAccessKeyId=EXAMPLE..."
+
+  # REQUIRED: Set a secure admin password
+  admin:
+    key: "change-this-to-a-secure-password"
+
+  # Foundry version (must match the version in releaseUrl)
+  version: "13.350"
+
+  # Optional: Automatically launch a specific world on startup
+  # world: "my-campaign-world"
+
+  # Optional: Custom hostname for invitation links
+  # hostname: "foundry.mylan.local"
+
+  # Optional: Preserve configuration changes made in GUI
+  # (If false, GUI changes are lost on container restart)
+  preserveConfig: true
+
+  # Optional: If running behind a reverse proxy with SSL
+  # proxy:
+  #   ssl: true
+  #   port: "443"
+
+  # Alternative authentication (instead of releaseUrl)
+  # Uncomment these if you prefer to use account credentials
+  # auth:
+  #   username: "your-foundryvtt-username"
+  #   password: "your-foundryvtt-password"
+
+# Service Configuration - Expose Foundry on your LAN
+service:
+  type: LoadBalancer
+  port: 30000
+
+  # Method 1: Request specific IP using MetalLB annotation (recommended)
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.1.100"
+
+  # Method 2: Request specific IP using loadBalancerIP field
+  # loadBalancerIP: "192.168.1.100"
+
+# Persistent Storage for Foundry Data
+persistence:
+  enabled: true
+  size: 20Gi  # Adjust based on your needs (modules, maps, assets)
+
+  # Optional: Specify a storage class
+  # storageClass: "local-path"
+
+  # Optional: Use an existing PVC instead of creating a new one
+  # existingClaim: "foundry-data-pvc"
+
+  accessMode: ReadWriteOnce
+
+# Resource Limits
+resources:
+  limits:
+    cpu: 2000m      # 2 CPU cores max
+    memory: 2Gi     # 2GB RAM max
+  requests:
+    cpu: 500m       # 0.5 CPU cores requested
+    memory: 512Mi   # 512MB RAM requested
+
+# Optional: Additional environment variables
+# See https://github.com/felddy/foundryvtt-docker for all options
+extraEnv:
+  - name: FOUNDRY_MINIFY_STATIC_FILES
+    value: "true"
+  - name: TIMEZONE
+    value: "America/New_York"
+  # - name: CONTAINER_VERBOSE
+  #   value: "true"
+
+# Optional: Security context
+# securityContext:
+#   fsGroup: 421
+#   runAsUser: 421
+#   runAsGroup: 421
+
+# Optional: Node selector (run on specific nodes)
+# nodeSelector:
+#   kubernetes.io/hostname: node-name
+
+# Optional: Tolerations
+# tolerations: []
+
+# Optional: Affinity rules
+# affinity: {}

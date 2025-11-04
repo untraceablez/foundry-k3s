@@ -1,0 +1,77 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Foundry Virtual Tabletop instance is being deployed.
+
+Release Name: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Chart Version: {{ .Chart.Version }}
+App Version: {{ .Chart.AppVersion }}
+
+To check the status of your deployment:
+
+  kubectl get pods -l app.kubernetes.io/name={{ include "foundryvtt.name" . }} -n {{ .Release.Namespace }}
+
+To view the logs:
+
+  kubectl logs -l app.kubernetes.io/name={{ include "foundryvtt.name" . }} -n {{ .Release.Namespace }}
+
+To get the LoadBalancer IP address:
+
+  kubectl get svc {{ include "foundryvtt.fullname" . }} -n {{ .Release.Namespace }}
+
+{{- if .Values.service.type }}
+{{- if eq .Values.service.type "LoadBalancer" }}
+
+Once the LoadBalancer IP is assigned, you can access Foundry VTT at:
+
+{{- if .Values.service.loadBalancerIP }}
+  http://{{ .Values.service.loadBalancerIP }}:{{ .Values.service.port }}
+{{- else }}
+  http://<EXTERNAL-IP>:{{ .Values.service.port }}
+
+  Run this command to get the IP:
+  kubectl get svc {{ include "foundryvtt.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+{{- end }}
+
+{{- end }}
+{{- end }}
+
+{{- if not .Values.foundry.releaseUrl }}
+{{- if not (and .Values.foundry.auth.username .Values.foundry.auth.password) }}
+
+WARNING: No authentication method configured!
+You must set either:
+  - foundry.releaseUrl (presigned URL from https://foundryvtt.com/me/licenses)
+  - OR foundry.auth.username and foundry.auth.password
+
+The container will fail to start without valid authentication.
+{{- end }}
+{{- end }}
+
+{{- if eq .Values.foundry.admin.key "changeme-admin-key" }}
+
+WARNING: Default admin key detected!
+Please change 'foundry.admin.key' to a secure password in your values.yaml
+{{- end }}
+
+{{- if .Values.persistence.enabled }}
+{{- if not .Values.persistence.existingClaim }}
+
+Persistent storage is enabled. Data will be stored in PVC: {{ include "foundryvtt.fullname" . }}
+{{- end }}
+{{- else }}
+
+WARNING: Persistent storage is DISABLED!
+All Foundry data will be lost when the pod restarts.
+Enable persistence in your values.yaml:
+  persistence:
+    enabled: true
+    size: 10Gi
+{{- end }}
+
+For more information and troubleshooting, see:
+  - Chart README: https://github.com/yourusername/foundry-k3s/blob/main/foundryvtt/README.md
+  - Foundry Docker Image: https://github.com/felddy/foundryvtt-docker
+  - Foundry VTT: https://foundryvtt.com
+
+Enjoy your game!

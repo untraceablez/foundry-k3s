@@ -1,0 +1,112 @@
+# Default values for foundryvtt Helm chart
+
+# Image configuration
+image:
+  repository: felddy/foundryvtt
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion
+  tag: "13.350"
+
+# Foundry VTT configuration
+foundry:
+  # REQUIRED: Presigned URL from your Foundry profile
+  # This MUST be set before deployment or the container will fail to start
+  # Get this from: https://foundryvtt.com/me/licenses
+  releaseUrl: ""
+
+  # Admin credentials (stored in Kubernetes Secret)
+  # These will be created as a secret automatically
+  admin:
+    # Admin key/password for initial setup
+    key: "changeme-admin-key"
+    # Optional: Username for web authentication
+    username: ""
+    # Optional: Password for web authentication
+    password: ""
+
+  # Foundry version to install (if using username/password auth instead of releaseUrl)
+  version: "13.350"
+
+  # Optional: Specific world to launch on startup
+  world: ""
+
+  # Optional: Custom hostname for invitation links
+  hostname: ""
+
+  # Proxy configuration (if running behind reverse proxy)
+  proxy:
+    ssl: false
+    port: ""
+
+  # Optional: Specific license key to use
+  licenseKey: ""
+
+  # Set to true to preserve config changes made in GUI between restarts
+  preserveConfig: false
+
+  # Alternative authentication (instead of releaseUrl)
+  # If you prefer to use your Foundry account credentials
+  auth:
+    username: ""
+    password: ""
+
+# Service configuration
+service:
+  type: LoadBalancer
+  port: 30000
+  # Annotations for MetalLB
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: ""  # Set your desired LAN IP here
+  # Optional: Specify the IP address pool to use
+  # loadBalancerIP: "192.168.1.100"  # Uncomment and set your LAN IP
+
+# Persistent storage for Foundry data
+persistence:
+  enabled: true
+  # storageClass: ""  # Uncomment to use a specific storage class
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  # existingClaim: ""  # Uncomment to use an existing PVC
+
+# Resource limits
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Replica count (should typically be 1 for Foundry VTT)
+replicaCount: 1
+
+# Security context
+securityContext:
+  # fsGroup: 421  # Uncomment if you need specific file permissions
+  # runAsUser: 421
+  # runAsGroup: 421
+
+# Pod security context
+podSecurityContext: {}
+
+# Service account
+serviceAccount:
+  create: false
+  name: ""
+
+# Environment variables (for advanced configuration)
+# Any additional environment variables can be added here
+extraEnv: []
+  # - name: FOUNDRY_MINIFY_STATIC_FILES
+  #   value: "true"
+  # - name: CONTAINER_VERBOSE
+  #   value: "true"

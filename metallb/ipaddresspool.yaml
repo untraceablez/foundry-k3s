@@ -1,0 +1,21 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  # IMPORTANT: Edit this range to match your LAN network
+  # Example: If your network is 192.168.1.0/24, you might use:
+  # - 192.168.1.100-192.168.1.110
+  #
+  # Make sure this range:
+  # 1. Is within your LAN subnet
+  # 2. Does not conflict with your DHCP server
+  # 3. Has enough IPs for your services
+  - 192.168.1.100-192.168.1.110
+
+  # You can also specify individual IPs or CIDR ranges:
+  # - 192.168.1.100/32
+  # - 192.168.1.200-192.168.1.210
+  # - 10.0.0.0/24

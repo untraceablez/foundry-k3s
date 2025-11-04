@@ -1,0 +1,17 @@
+apiVersion: v2
+name: foundryvtt
+description: A Helm chart for deploying Foundry Virtual Tabletop using felddy/foundryvtt-docker
+type: application
+version: 0.1.0
+appVersion: "13.350"
+keywords:
+  - foundryvtt
+  - tabletop
+  - gaming
+  - rpg
+home: https://github.com/felddy/foundryvtt-docker
+sources:
+  - https://github.com/felddy/foundryvtt-docker
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
