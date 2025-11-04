@@ -2,4 +2,4 @@ claude/
 ./claude
 s3-config.json
 keys/
-values.yaml
+foundryvtt/values.yaml
