@@ -69,6 +69,22 @@ Enable persistence in your values.yaml:
     size: 10Gi
 {{- end }}
 
+{{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
+
+Configuration files mounted to /data/Config:
+{{- if .Values.foundry.config.s3 }}
+  - s3-config.json (S3 storage configuration)
+{{- end }}
+{{- if .Values.foundry.config.certificates.cert }}
+  - cert.pem (SSL certificate)
+{{- end }}
+{{- if .Values.foundry.config.certificates.key }}
+  - key.pem (SSL private key)
+{{- end }}
+{{- end }}
+
+Running with {{ .Values.replicaCount }} replica(s).
+
 For more information and troubleshooting, see:
   - Chart README: https://github.com/yourusername/foundry-k3s/blob/main/foundryvtt/README.md
   - Foundry Docker Image: https://github.com/felddy/foundryvtt-docker

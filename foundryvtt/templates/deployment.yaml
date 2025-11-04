@@ -15,6 +15,9 @@ spec:
     metadata:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
+        checksum/config: {{ include (print $.Template.BasePath "/config-secret.yaml") . | sha256sum }}
+        {{- end }}
       labels:
         {{- include "foundryvtt.selectorLabels" . | nindent 8 }}
     spec:
@@ -105,6 +108,11 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
+        {{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
+        - name: config
+          mountPath: /data/Config
+          readOnly: true
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /
@@ -131,6 +139,12 @@ spec:
         {{- else }}
         emptyDir: {}
         {{- end }}
+      {{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
+      - name: config
+        secret:
+          secretName: {{ include "foundryvtt.fullname" . }}-config
+          defaultMode: 0440
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

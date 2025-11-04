@@ -41,6 +41,29 @@ foundry:
   #   username: "your-foundryvtt-username"
   #   password: "your-foundryvtt-password"
 
+  # Optional: Configuration files (mounted to /data/Config)
+  # config:
+  #   # S3 storage configuration
+  #   s3: |
+  #     {
+  #       "endpoint": "https://s3.amazonaws.com",
+  #       "accessKeyId": "YOUR_ACCESS_KEY_ID",
+  #       "secretAccessKey": "YOUR_SECRET_ACCESS_KEY",
+  #       "bucket": "your-foundry-bucket",
+  #       "region": "us-east-1"
+  #     }
+  #
+  #   # SSL/TLS certificates (not recommended - use reverse proxy instead)
+  #   certificates:
+  #     cert: |
+  #       -----BEGIN CERTIFICATE-----
+  #       MIIDXTCCAkWgAwIBAgIJAKJ...
+  #       -----END CERTIFICATE-----
+  #     key: |
+  #       -----BEGIN PRIVATE KEY-----
+  #       MIIEvQIBADANBgkqhkiG9w0B...
+  #       -----END PRIVATE KEY-----
+
 # Service Configuration - Expose Foundry on your LAN
 service:
   type: LoadBalancer

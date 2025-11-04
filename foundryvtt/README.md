@@ -157,6 +157,64 @@ foundry:
     port: "443"
 ```
 
+### Configuration Files (S3 & Certificates)
+
+You can optionally configure S3 storage for assets and/or SSL certificates. These files will be mounted to `/data/Config` where Foundry expects them.
+
+#### S3 Configuration
+
+To use S3-compatible storage for Foundry assets:
+
+```yaml
+foundry:
+  config:
+    s3: |
+      {
+        "endpoint": "https://s3.amazonaws.com",
+        "accessKeyId": "YOUR_ACCESS_KEY_ID",
+        "secretAccessKey": "YOUR_SECRET_ACCESS_KEY",
+        "bucket": "your-foundry-bucket",
+        "region": "us-east-1"
+      }
+```
+
+Supported S3-compatible services:
+- AWS S3
+- Cloudflare R2
+- DigitalOcean Spaces
+- Backblaze B2
+- MinIO
+- Any S3-compatible storage
+
+See [examples/README.md](examples/README.md) for provider-specific examples.
+
+#### SSL/TLS Certificates
+
+To enable HTTPS directly in Foundry (not recommended - use a reverse proxy instead):
+
+```yaml
+foundry:
+  config:
+    certificates:
+      cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIDXTCCAkWgAwIBAgIJAKJ...
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0B...
+        -----END PRIVATE KEY-----
+```
+
+Or load from files:
+
+```bash
+helm install foundryvtt ./foundryvtt \
+  --set-file foundry.config.s3=./s3-config.json \
+  --set-file foundry.config.certificates.cert=./cert.pem \
+  --set-file foundry.config.certificates.key=./key.pem
+```
+
 ### Persistence Configuration
 
 | Parameter | Description | Default |
