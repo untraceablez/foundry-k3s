@@ -17,6 +17,12 @@ foundry:
   admin:
     key: "change-this-to-a-secure-password"
 
+    # Optional: Force admin key reset on every restart
+    # Set to false to allow password changes via web interface (recommended)
+    # Set to true to always use the admin key from values.yaml
+    # Default: false when preserveConfig is true
+    setAdminKey: false
+
   # Foundry version (must match the version in releaseUrl)
   version: "13.350"
 
@@ -27,7 +33,9 @@ foundry:
   # hostname: "foundry.mylan.local"
 
   # Optional: Preserve configuration changes made in GUI
-  # (If false, GUI changes are lost on container restart)
+  # When true: Changes made in Foundry's web interface persist across restarts
+  # When false: Configuration is regenerated on every restart
+  # Recommended: true (allows password changes via GUI)
   preserveConfig: true
 
   # Optional: If running behind a reverse proxy with SSL

@@ -134,6 +134,54 @@ service:
 | `foundry.licenseKey` | Specific license key | `""` |
 | `foundry.preserveConfig` | Preserve GUI config changes | `false` |
 
+### Admin Password Management
+
+The admin password behavior depends on your configuration:
+
+**Default Configuration (Recommended):**
+```yaml
+foundry:
+  preserveConfig: true
+  admin:
+    key: "your-initial-admin-key"
+    setAdminKey: false  # Don't reset password on restart
+```
+
+With this setup:
+- ✅ Initial admin key is set on first deployment
+- ✅ You can change the password via the Foundry web interface
+- ✅ Password changes persist across pod restarts
+- ✅ Configuration changes made in the GUI are preserved
+
+**Alternative: Reset Password on Every Restart**
+```yaml
+foundry:
+  preserveConfig: false
+  admin:
+    key: "your-admin-key"
+    setAdminKey: true  # Force reset on every restart
+```
+
+With this setup:
+- ⚠️ Admin key is reset on every pod restart
+- ⚠️ GUI configuration changes are lost on restart
+- ⚠️ You cannot change the password via the web interface
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `foundry.admin.key` | Admin password for Foundry | `"changeme-admin-key"` |
+| `foundry.admin.setAdminKey` | Force admin key on restart | `false` |
+| `foundry.preserveConfig` | Preserve GUI changes | `true` |
+
+**Troubleshooting Password Issues:**
+
+If you can't change your password via the web interface:
+1. Ensure `preserveConfig: true` in your values.yaml
+2. Ensure `setAdminKey: false` in your values.yaml
+3. Upgrade the deployment: `helm upgrade foundryvtt ./foundryvtt`
+4. The pod will restart without forcing the admin key
+5. You can now change the password in Foundry's web interface
+
 ### Alternative Authentication
 
 Instead of using `releaseUrl`, you can use your Foundry account credentials:
@@ -159,7 +207,10 @@ foundry:
 
 ### Configuration Files (S3 & Certificates)
 
-You can optionally configure S3 storage for assets and/or SSL certificates. These files will be mounted to `/data/Config` where Foundry expects them.
+You can optionally configure S3 storage for assets and/or SSL certificates. These files will be mounted at the paths where Foundry expects them:
+- S3 config: `/data/Config/s3-config.json`
+- SSL certificate: `/data/Config/certificates/cert`
+- SSL private key: `/data/Config/certificates/key`
 
 #### S3 Configuration
 
@@ -211,9 +262,11 @@ Or load from files:
 ```bash
 helm install foundryvtt ./foundryvtt \
   --set-file foundry.config.s3=./s3-config.json \
-  --set-file foundry.config.certificates.cert=./cert.pem \
-  --set-file foundry.config.certificates.key=./key.pem
+  --set-file foundry.config.certificates.cert=./your-cert.pem \
+  --set-file foundry.config.certificates.key=./your-key.pem
 ```
+
+**Note:** The certificate and key files will be mounted to `/data/Config/certificates/cert` and `/data/Config/certificates/key` respectively (without file extensions), which is what Foundry expects.
 
 ### Persistence Configuration
 

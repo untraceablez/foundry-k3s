@@ -1,6 +1,7 @@
 apiVersion: v2
 name: foundryvtt
 description: A Helm chart for deploying Foundry Virtual Tabletop using felddy/foundryvtt-docker
+icon: https://r2.foundryvtt.com/website-static-public/assets/icons/fvtt.png
 type: application
 version: 0.1.0
 appVersion: "13.350"

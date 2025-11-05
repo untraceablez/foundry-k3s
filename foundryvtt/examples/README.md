@@ -70,11 +70,17 @@ Example S3 configuration file for storing Foundry assets in cloud storage.
 
 ## SSL/TLS Certificates
 
-If you want Foundry to serve HTTPS directly (not recommended - use a reverse proxy instead), you need two files:
+If you want Foundry to serve HTTPS directly (not recommended - use a reverse proxy instead), you need two files.
 
-### cert.pem
+**Note:** These files will be mounted at:
+- `/data/Config/certificates/cert` (certificate file)
+- `/data/Config/certificates/key` (private key file)
 
-Your SSL certificate file (including any intermediate certificates).
+This matches what Foundry VTT expects for SSL configuration.
+
+### Certificate File
+
+Your SSL certificate file (including any intermediate certificates). Can be in PEM format with any source filename (e.g., `cert.pem`, `fullchain.pem`, etc.).
 
 ```
 -----BEGIN CERTIFICATE-----
@@ -82,9 +88,9 @@ MIIDXTCCAkWgAwIBAgIJAKJ...
 -----END CERTIFICATE-----
 ```
 
-### key.pem
+### Private Key File
 
-Your private key file.
+Your private key file. Can be in PEM format with any source filename (e.g., `key.pem`, `privkey.pem`, etc.).
 
 ```
 -----BEGIN PRIVATE KEY-----
@@ -126,9 +132,16 @@ Or reference files:
 ```bash
 helm install foundryvtt ./foundryvtt \
   --set-file foundry.config.s3=./s3-config.json \
-  --set-file foundry.config.certificates.cert=./cert.pem \
-  --set-file foundry.config.certificates.key=./key.pem
+  --set-file foundry.config.certificates.cert=./your-cert.pem \
+  --set-file foundry.config.certificates.key=./your-key.pem
 ```
+
+**Mounted paths:**
+- Your `s3-config.json` → `/data/Config/s3-config.json`
+- Your certificate file → `/data/Config/certificates/cert`
+- Your key file → `/data/Config/certificates/key`
+
+The source filenames can be anything (`.pem`, `.crt`, `.key`, etc.), but they will be mounted at the paths Foundry expects.
 
 ## Security Notes
 

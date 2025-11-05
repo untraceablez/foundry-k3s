@@ -21,9 +21,51 @@ spec:
       labels:
         {{- include "foundryvtt.selectorLabels" . | nindent 8 }}
     spec:
-      {{- if .Values.securityContext }}
       securityContext:
+        {{- if .Values.securityContext }}
         {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- else }}
+        fsGroup: 421
+        runAsUser: 421
+        runAsGroup: 421
+        {{- end }}
+      {{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
+      initContainers:
+      - name: copy-config
+        image: busybox:latest
+        securityContext:
+          runAsUser: 0
+        command: ['sh', '-c']
+        args:
+          - |
+            echo "Copying config files to /data/Config..."
+            mkdir -p /data/Config/certificates
+            {{- if .Values.foundry.config.s3 }}
+            cp /config-source/s3-config.json /data/Config/s3-config.json
+            chmod 644 /data/Config/s3-config.json
+            echo "Copied s3-config.json"
+            {{- end }}
+            {{- if .Values.foundry.config.certificates.cert }}
+            cp /config-source/cert /data/Config/certificates/cert
+            chmod 644 /data/Config/certificates/cert
+            echo "Copied certificate"
+            {{- end }}
+            {{- if .Values.foundry.config.certificates.key }}
+            cp /config-source/key /data/Config/certificates/key
+            chmod 644 /data/Config/certificates/key
+            echo "Copied private key"
+            {{- end }}
+            # Set ownership of entire /data directory to user 421 (foundry user)
+            chown -R 421:421 /data
+            chmod 755 /data/Config
+            chmod 755 /data/Config/certificates
+            echo "Config files copied and permissions set successfully"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /config-source
+          readOnly: true
       {{- end }}
       containers:
       - name: foundryvtt
@@ -59,7 +101,9 @@ spec:
               key: foundry-password
         {{- end }}
         # Admin key for Foundry VTT
-        {{- if .Values.foundry.admin.key }}
+        # Only set admin key if preserveConfig is false OR if setAdminKey is explicitly true
+        # This allows password changes via the web interface when preserveConfig is true
+        {{- if and .Values.foundry.admin.key (or (not .Values.foundry.preserveConfig) .Values.foundry.admin.setAdminKey) }}
         - name: FOUNDRY_ADMIN_KEY
           valueFrom:
             secretKeyRef:
@@ -108,11 +152,6 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
-        {{- if or .Values.foundry.config.s3 .Values.foundry.config.certificates.cert .Values.foundry.config.certificates.key }}
-        - name: config
-          mountPath: /data/Config
-          readOnly: true
-        {{- end }}
         livenessProbe:
           httpGet:
             path: /
